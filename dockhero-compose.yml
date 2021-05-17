@@ -1,0 +1,201 @@
+networks:
+  traefik-public:
+    external: false
+services:
+  backend:
+    build:
+      args:
+        INSTALL_DEV: "false"
+      context: /Users/joagabriellima/Documents/MyMac/PROFISSIONAL/obturbo-project/obturbo/backend
+      dockerfile: backend.dockerfile
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.constraint-label-stack=obturbo.com
+        - traefik.http.routers.obturbo-com-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`)
+          || PathPrefix(`/redoc`)
+        - traefik.http.services.obturbo-com-backend.loadbalancer.server.port=80
+    environment:
+      BACKEND_CORS_ORIGINS: '["http://localhost", "http://localhost:4200", "http://localhost:3000",
+        "http://localhost:8080", "https://localhost", "https://localhost:4200", "https://localhost:3000",
+        "https://localhost:8080", "http://dev.obturbo.com", "https://stag.obturbo.com",
+        "https://obturbo.com", "http://local.dockertoolbox.tiangolo.com", "http://localhost.tiangolo.com"]'
+      DOCKER_IMAGE_BACKEND: obt_backend
+      DOCKER_IMAGE_CELERYWORKER: obt_celeryworker
+      DOCKER_IMAGE_FRONTEND: obt_frontend
+      DOMAIN: localhost
+      EMAILS_FROM_EMAIL: tech@obturbo.com
+      FIRST_SUPERUSER: tech@obturbo.com
+      FIRST_SUPERUSER_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      FLOWER_BASIC_AUTH: admin:7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_DEFAULT_EMAIL: tech@obturbo.com
+      PGADMIN_DEFAULT_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_LISTEN_PORT: '5050'
+      POSTGRES_DB: ddt54oluke3do1
+      POSTGRES_PASSWORD: c4cc771f4ffb27c5bbd97df74ae9b1086be7ed710b2fe392aed1e12bc8c6c51f
+      POSTGRES_SERVER: ec2-34-200-94-86.compute-1.amazonaws.com
+      POSTGRES_USER: seehhhncjjfont
+      PROJECT_NAME: obturbo
+      SECRET_KEY: 7aa63eaf9d52b88ac16c13572e12fe3507f39262afcbc3cc73d346452e6a894a
+      SENTRY_DSN: https://b43f962f596c48f484fbb9444f5ab44b@o190918.ingest.sentry.io/5756166
+      SERVER_HOST: https://obturbo.com
+      SERVER_NAME: obturbo.com
+      SMTP_HOST: mail.obturbo.com
+      SMTP_PASSWORD: '!@Obturbo13579'
+      SMTP_PORT: '465'
+      SMTP_TLS: "True"
+      SMTP_USER: tech@obturbo.com
+      STACK_NAME: obturbo-com
+      TRAEFIK_PUBLIC_NETWORK: traefik-public
+      TRAEFIK_PUBLIC_TAG: traefik-public
+      TRAEFIK_TAG: obturbo.com
+      USERS_OPEN_REGISTRATION: "False"
+    image: obt_backend:prod
+  celeryworker:
+    build:
+      args:
+        INSTALL_DEV: "false"
+      context: /Users/joagabriellima/Documents/MyMac/PROFISSIONAL/obturbo-project/obturbo/backend
+      dockerfile: celeryworker.dockerfile
+    environment:
+      BACKEND_CORS_ORIGINS: '["http://localhost", "http://localhost:4200", "http://localhost:3000",
+        "http://localhost:8080", "https://localhost", "https://localhost:4200", "https://localhost:3000",
+        "https://localhost:8080", "http://dev.obturbo.com", "https://stag.obturbo.com",
+        "https://obturbo.com", "http://local.dockertoolbox.tiangolo.com", "http://localhost.tiangolo.com"]'
+      DOCKER_IMAGE_BACKEND: obt_backend
+      DOCKER_IMAGE_CELERYWORKER: obt_celeryworker
+      DOCKER_IMAGE_FRONTEND: obt_frontend
+      DOMAIN: localhost
+      EMAILS_FROM_EMAIL: tech@obturbo.com
+      FIRST_SUPERUSER: tech@obturbo.com
+      FIRST_SUPERUSER_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      FLOWER_BASIC_AUTH: admin:7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_DEFAULT_EMAIL: tech@obturbo.com
+      PGADMIN_DEFAULT_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_LISTEN_PORT: '5050'
+      POSTGRES_DB: ddt54oluke3do1
+      POSTGRES_PASSWORD: c4cc771f4ffb27c5bbd97df74ae9b1086be7ed710b2fe392aed1e12bc8c6c51f
+      POSTGRES_SERVER: ec2-34-200-94-86.compute-1.amazonaws.com
+      POSTGRES_USER: seehhhncjjfont
+      PROJECT_NAME: obturbo
+      SECRET_KEY: 7aa63eaf9d52b88ac16c13572e12fe3507f39262afcbc3cc73d346452e6a894a
+      SENTRY_DSN: https://b43f962f596c48f484fbb9444f5ab44b@o190918.ingest.sentry.io/5756166
+      SERVER_HOST: https://obturbo.com
+      SERVER_NAME: obturbo.com
+      SMTP_HOST: mail.obturbo.com
+      SMTP_PASSWORD: '!@Obturbo13579'
+      SMTP_PORT: '465'
+      SMTP_TLS: "True"
+      SMTP_USER: tech@obturbo.com
+      STACK_NAME: obturbo-com
+      TRAEFIK_PUBLIC_NETWORK: traefik-public
+      TRAEFIK_PUBLIC_TAG: traefik-public
+      TRAEFIK_TAG: obturbo.com
+      USERS_OPEN_REGISTRATION: "False"
+    image: obt_celeryworker:prod
+  flower:
+    command:
+      - --broker=amqp://guest@queue:5672//
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.obturbo-com-flower-http.rule=Host(`flower.obturbo.com`)
+        - traefik.http.routers.obturbo-com-flower-http.entrypoints=http
+        - traefik.http.routers.obturbo-com-flower-http.middlewares=obturbo-com-https-redirect
+        - traefik.http.routers.obturbo-com-flower-https.rule=Host(`flower.obturbo.com`)
+        - traefik.http.routers.obturbo-com-flower-https.entrypoints=https
+        - traefik.http.routers.obturbo-com-flower-https.tls=true
+        - traefik.http.routers.obturbo-com-flower-https.tls.certresolver=le
+        - traefik.http.services.obturbo-com-flower.loadbalancer.server.port=5555
+    environment:
+      BACKEND_CORS_ORIGINS: '["http://localhost", "http://localhost:4200", "http://localhost:3000",
+        "http://localhost:8080", "https://localhost", "https://localhost:4200", "https://localhost:3000",
+        "https://localhost:8080", "http://dev.obturbo.com", "https://stag.obturbo.com",
+        "https://obturbo.com", "http://local.dockertoolbox.tiangolo.com", "http://localhost.tiangolo.com"]'
+      DOCKER_IMAGE_BACKEND: obt_backend
+      DOCKER_IMAGE_CELERYWORKER: obt_celeryworker
+      DOCKER_IMAGE_FRONTEND: obt_frontend
+      DOMAIN: localhost
+      EMAILS_FROM_EMAIL: tech@obturbo.com
+      FIRST_SUPERUSER: tech@obturbo.com
+      FIRST_SUPERUSER_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      FLOWER_BASIC_AUTH: admin:7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_DEFAULT_EMAIL: tech@obturbo.com
+      PGADMIN_DEFAULT_PASSWORD: 7951a1170ae8ac7bf55568efcfb22a212eaacba0923b8378f8fefa939102e460
+      PGADMIN_LISTEN_PORT: '5050'
+      POSTGRES_DB: ddt54oluke3do1
+      POSTGRES_PASSWORD: c4cc771f4ffb27c5bbd97df74ae9b1086be7ed710b2fe392aed1e12bc8c6c51f
+      POSTGRES_SERVER: ec2-34-200-94-86.compute-1.amazonaws.com
+      POSTGRES_USER: seehhhncjjfont
+      PROJECT_NAME: obturbo
+      SECRET_KEY: 7aa63eaf9d52b88ac16c13572e12fe3507f39262afcbc3cc73d346452e6a894a
+      SENTRY_DSN: https://b43f962f596c48f484fbb9444f5ab44b@o190918.ingest.sentry.io/5756166
+      SMTP_HOST: mail.obturbo.com
+      SMTP_PASSWORD: '!@Obturbo13579'
+      SMTP_PORT: '465'
+      SMTP_TLS: "True"
+      SMTP_USER: tech@obturbo.com
+      STACK_NAME: obturbo-com
+      TRAEFIK_PUBLIC_NETWORK: traefik-public
+      TRAEFIK_PUBLIC_TAG: traefik-public
+      TRAEFIK_TAG: obturbo.com
+      USERS_OPEN_REGISTRATION: "False"
+    image: mher/flower
+    networks:
+      default: null
+      traefik-public: null
+  frontend:
+    build:
+      args:
+        FRONTEND_ENV: production
+      context: /Users/joagabriellima/Documents/MyMac/PROFISSIONAL/obturbo-project/obturbo/frontend
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.constraint-label-stack=obturbo.com
+        - traefik.http.routers.obturbo-com-frontend-http.rule=PathPrefix(`/`)
+        - traefik.http.services.obturbo-com-frontend.loadbalancer.server.port=80
+    image: obt_frontend:prod
+  proxy:
+    command:
+      - --providers.docker
+      - --providers.docker.constraints=Label(`traefik.constraint-label-stack`, `obturbo.com`)
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.swarmmode
+      - --accesslog
+      - --log
+      - --api
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.middlewares.obturbo-com-https-redirect.redirectscheme.scheme=https
+        - traefik.http.middlewares.obturbo-com-https-redirect.redirectscheme.permanent=true
+        - traefik.http.routers.obturbo-com-proxy-http.rule=Host(`obturbo.com`) || Host(`www.obturbo.com`)
+        - traefik.http.routers.obturbo-com-proxy-http.entrypoints=http
+        - traefik.http.routers.obturbo-com-proxy-https.rule=Host(`obturbo.com`) || Host(`www.obturbo.com`)
+        - traefik.http.routers.obturbo-com-proxy-https.entrypoints=https
+        - traefik.http.routers.obturbo-com-proxy-https.tls=true
+        - traefik.http.routers.obturbo-com-proxy-https.tls.certresolver=le
+        - traefik.http.services.obturbo-com-proxy.loadbalancer.server.port=80
+        - traefik.http.middlewares.obturbo-com-www-redirect.redirectregex.regex=^https?://(www.)?(obturbo.com)/(.*)
+        - traefik.http.routers.obturbo-com-proxy-https.middlewares=obturbo-com-www-redirect
+        - traefik.http.routers.obturbo-com-proxy-http.middlewares=obturbo-com-www-redirect,obturbo-com-https-redirect
+      placement:
+        constraints:
+          - node.role == manager
+    image: traefik:v2.2
+    networks:
+      default: null
+      traefik-public: null
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+  queue:
+    image: rabbitmq:3
+version: '3.6'
+volumes:
+  app-db-data: {}
+
